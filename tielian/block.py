@@ -2,6 +2,7 @@ import hashlib
 from datetime import datetime
 import logging
 import time
+import sys
 
 class Block:
 
@@ -84,4 +85,9 @@ if __name__ == '__main__':
 
     # 铁链甩起来！
     logging.info("区块链？就是...铁链嘛！\n\n")
-    run()
+
+    try:
+        run()
+    except KeyboardInterrupt:
+        logging.info("铁链断裂[-END-]")
+        sys.exit(0)
