@@ -1,4 +1,7 @@
 class Transaction:
+    """
+    交易
+    """
 
     def __init__(self, _from, _to, _value):
         self.sender = _from
@@ -11,6 +14,9 @@ class Transaction:
             'to': self.to,
             'value': self.value
         }
+
+    def __str__(self):
+        return 'Transaction<sender=%s, to=%s, value=%s>' % (self.sender, self.to, self.value)
 
 
 def create_transaction_from_json(payload):
