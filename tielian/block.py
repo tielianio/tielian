@@ -3,6 +3,7 @@ from datetime import datetime
 import logging
 import time
 import sys
+from transaction import create_transaction_from_json
 
 class Block:
 
@@ -34,12 +35,49 @@ class Block:
 
         return sha.hexdigest()
 
+    @property
+    def txs(self):
+        return map(lambda p: create_transaction_from_json(p), self.data['txs'])
+
+    def to_json(self):
+        return {
+            "index": self.index,
+            "timestamp": self.timestamp,
+            "data": self.data,
+            "previous_hash": self.previous_hash,
+            "hash": self.hash
+        }
+
+    def is_valid(self, chain):
+        """
+        验证区块是否合格
+
+        Dummy实现中[暂时]都是合法的
+        """
+
+        return self.previous_hash == chain[-1].hash
+
+
 
 def create_genesis_block():
     """
     创建创始区块
     """
-    return Block(0, datetime.now(), "Skr! 我是创始区块!", "0")
+    now = int(datetime.now().timestamp())
+    return Block(0, now, "Skr! 我是创始区块!", "0")
+
+def load_block(payload):
+    """
+    将 JSON 格式的新区块变成 Block 类型
+    """
+    return Block(
+        payload['index'],
+        payload['timestamp'],
+        payload['data'],
+        payload['previous_hash']
+    )
+    
+
 
 
 def new_block(last_block, data):
