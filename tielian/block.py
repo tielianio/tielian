@@ -7,12 +7,19 @@ from transaction import create_transaction_from_json
 
 class Block:
 
-    def __init__(self, _index, _timestamp, _data, _previous_hash):
+    # 难度 - 用区块哈希开头“0”的数量来标记
+    # 例如，默认难度为2，那么合法哈希的开头就应该有两个0
+    difficulty = 2
+
+    def __init__(self, _index, _timestamp, _data, _previous_hash, _nonce=0):
         # 区块高度
         self.index = _index
 
         # 时间戳
         self.timestamp = _timestamp
+
+        # Nonce - 神秘数字
+        self.nonce = _nonce
 
         # 任意数据
         self.data = _data
@@ -28,7 +35,10 @@ class Block:
         根据区块数据，生成唯一的区块哈希。哈希算法是最最简单的sha256。
         """
         sha = hashlib.sha256()
-        sig = "%s%s%s%s" % (self.index, self.timestamp, self.data, self.previous_hash)
+        sig = "%s|%s|%s|%s|%s" % (
+            self.index, self.timestamp, self.data, 
+            self.previous_hash, self.nonce
+        )
 
         # 因为数据(data)可能会有中文，这里用统一utf8编码
         sha.update(sig.encode('utf8'))
@@ -45,26 +55,48 @@ class Block:
             "timestamp": self.timestamp,
             "data": self.data,
             "previous_hash": self.previous_hash,
-            "hash": self.hash
+            "hash": self.hash,
+            "nonce": self.nonce
         }
+
+    def _validate_lineage(self, chain):
+        """
+        验证区块传承性
+        """
+        current_block = chain[-1]
+
+        if self.previous_hash != current_block.hash:
+            raise Exception('前序哈希值不匹配') # TODO: 定制异常类
+
+        if self.index != current_block.index + 1:
+            raise Exception('区块高度不匹配')
+
+        return True
+
+
+    def _validate_difficulty(self):
+        """
+        验证区块符合难度
+        """
+        valid_padding = '0' * self.difficulty
+        if not self.hash.startswith(valid_padding):
+            raise Exception('难度不符，当前难度：%s，实际哈希前缀：%s' % (
+                self.difficulty, self.hash[:self.difficulty]
+            ))
+        return True
 
     def is_valid(self, chain):
         """
         验证区块是否合格
-
-        Dummy实现中[暂时]都是合法的
         """
-
-        return self.previous_hash == chain[-1].hash
-
-
+        return self._validate_lineage(chain) and self._validate_difficulty()
 
 def create_genesis_block():
     """
     创建创始区块
     """
     now = int(datetime.now().timestamp())
-    return Block(0, now, "Skr! 我是创始区块!", "0")
+    return Block(0, now, "Skr! 我是创始区块!", "0", 0)
 
 def load_block(payload):
     """
@@ -74,7 +106,8 @@ def load_block(payload):
         payload['index'],
         payload['timestamp'],
         payload['data'],
-        payload['previous_hash']
+        payload['previous_hash'],
+        payload['nonce']
     )
     
 

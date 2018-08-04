@@ -14,5 +14,5 @@ http POST :5000/txs sender=bob to=alice value=10
 http GET :5000/txs
 
 # 提交区块
-http POST :5000/blocks index:=1 timestamp:=1533198815 previous_hash=0e48867f0ad7605cc592705b4c53e024c5208ca2280823810c9a04eefec4c837 \
+http POST :5000/blocks nonce:=4 index:=1 timestamp:=1533198815 previous_hash=eed03d8eff53165e31947c6f794e48bddb32573c6e1d20e4b1dd1b5659a8f41d \
 data:='{"txs": [{"sender": "bob", "to": "alice", "value": 10}]}'

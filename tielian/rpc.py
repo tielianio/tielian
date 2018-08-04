@@ -44,18 +44,19 @@ def submit_block():
     提交已打包新区块
     """
     global pending_txs
-    
+
     block = load_block(request.get_json())
 
-    if not block.is_valid(chain):
-        raise Exception('非法区块尝试上链！')
+    try:
+        block.is_valid(chain)
+    except Exception as e:
+        raise Exception('非法区块尝试上链！%s' % e)
 
     # 把已经打包的交易从待打包交易去掉
     pending_txs = trim_pending_txs(pending_txs, block)
         
     chain.append(block)
     return "", 201
-
 
 @app.route('/blocks', methods=['GET'])
 def get_all_blocks():
@@ -68,6 +69,10 @@ def get_all_blocks():
 @app.route('/blocks/latest', methods=['GET'])
 def get_latest_block():
     return jsonify(block=chain[-1].to_json())
+
+@app.errorhandler(Exception)
+def error_handler(e):
+    return jsonify(msg=str(e)), 500
 
 
 
