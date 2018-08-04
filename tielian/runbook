@@ -1,0 +1,18 @@
+# 入门指南
+# 下载安装 httpie
+# $ brew install httpie
+
+--- 开始 --- 
+
+# 获取当前所有区块（到此处应该是只有创世区块）
+http GET :5000/blocks
+
+# 发送交易
+http POST :5000/txs sender=bob to=alice value=10
+
+# 获取所有交易
+http GET :5000/txs
+
+# 提交区块
+http POST :5000/blocks nonce:=4 index:=1 timestamp:=1533198815 previous_hash=eed03d8eff53165e31947c6f794e48bddb32573c6e1d20e4b1dd1b5659a8f41d \
+data:='{"txs": [{"sender": "bob", "to": "alice", "value": 10}]}'
