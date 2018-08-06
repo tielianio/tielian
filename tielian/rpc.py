@@ -48,7 +48,8 @@ def submit_block():
     block = load_block(request.get_json())
 
     try:
-        block.is_valid(chain)
+        current_block = chain[-1]
+        block.is_valid(current_block)
     except Exception as e:
         raise Exception('非法区块尝试上链！%s' % e)
 
