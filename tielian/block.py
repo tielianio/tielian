@@ -45,6 +45,12 @@ class Block:
 
         return sha.hexdigest()
 
+    def update(self):
+        """
+        在参数（如nonce）改变的时候，更新hash
+        """
+        self.hash = self.calc_hash()
+
     @property
     def txs(self):
         return map(lambda p: create_transaction_from_json(p), self.data['txs'])
@@ -59,12 +65,10 @@ class Block:
             "nonce": self.nonce
         }
 
-    def _validate_lineage(self, chain):
+    def _validate_lineage(self, current_block):
         """
         验证区块传承性
         """
-        current_block = chain[-1]
-
         if self.previous_hash != current_block.hash:
             raise Exception('前序哈希值不匹配') # TODO: 定制异常类
 
@@ -74,7 +78,7 @@ class Block:
         return True
 
 
-    def _validate_difficulty(self):
+    def validate_difficulty(self):
         """
         验证区块符合难度
         """
@@ -85,11 +89,11 @@ class Block:
             ))
         return True
 
-    def is_valid(self, chain):
+    def is_valid(self, current_block):
         """
         验证区块是否合格
         """
-        return self._validate_lineage(chain) and self._validate_difficulty()
+        return self._validate_lineage(current_block) and self.validate_difficulty()
 
 def create_genesis_block():
     """

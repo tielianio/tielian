@@ -19,8 +19,23 @@ class Transaction:
         return 'Transaction<sender=%s, to=%s, value=%s>' % (self.sender, self.to, self.value)
 
 
-def create_transaction_from_json(payload):
+def _create_transaction_from_json(payload):
     return Transaction(payload['sender'], payload['to'], payload['value'])
+
+def create_transaction_from_json(payload):
+    """
+    将传入的JSON转化成交易对象，若JSON是列表，就返回一个交易对象列表
+    """
+    if type(payload) is list:
+        return [_create_transaction_from_json(obj) for obj in payload]
+    elif type(payload) is dict:
+        return _create_transaction_from_json(payload)
+    else:
+        raise Exception('错误的负载类型')
+
+def dump_transactions(txs):
+    return [tx.to_json() for tx in txs]
+
 
 def _contains_tx(tx, txs):
     """
