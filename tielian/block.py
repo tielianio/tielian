@@ -1,75 +1,51 @@
+import dataclasses
 import hashlib
 import logging
 import sys
 import time
-from datetime import datetime
 
 from tielian.transaction import create_transaction_from_json
 
 
+@dataclasses.dataclass
 class Block:
+    """ 一个区块 """
+
+    # 区块高度
+    index: int
+    # 时间戳
+    timestamp: int
+    # 任意数据
+    data: str
+    # 前一个区块的哈希值
+    previous_hash: str
+    # 神秘数字
+    nonce: int = 0
+
     # 难度 - 用区块哈希开头“0”的数量来标记
     # 例如，默认难度为2，那么合法哈希的开头就应该有两个0
     difficulty = 2
 
-    def __init__(self, _index, _timestamp, _data, _previous_hash, _nonce=0):
-        # 区块高度
-        self.index = _index
-
-        # 时间戳
-        self.timestamp = _timestamp
-
-        # Nonce - 神秘数字
-        self.nonce = _nonce
-
-        # 任意数据
-        self.data = _data
-
-        # 上一个区块哈希
-        self.previous_hash = _previous_hash
-
-        # 区块哈希
-        self.hash = self.calc_hash()
-
-    def calc_hash(self):
-        """
-        根据区块数据，生成唯一的区块哈希。哈希算法是最最简单的sha256。
-        """
+    @property
+    def hash(self):
+        """ 根据区块数据，生成唯一的区块哈希。哈希算法是最最简单的sha256。 """
         sha = hashlib.sha256()
-        sig = '%s|%s|%s|%s|%s' % (
-            self.index, self.timestamp, self.data,
-            self.previous_hash, self.nonce
-        )
+        sig = f'{self.index}|{self.timestamp}|{self.data}|{self.previous_hash}|{self.nonce}'
 
         # 因为数据(data)可能会有中文，这里用统一utf8编码
         sha.update(sig.encode('utf8'))
 
         return sha.hexdigest()
 
-    def update(self):
-        """
-        在参数（如nonce）改变的时候，更新hash
-        """
-        self.hash = self.calc_hash()
-
     @property
     def txs(self):
         return map(lambda p: create_transaction_from_json(p), self.data['txs'])
 
     def to_json(self):
-        return {
-            'index': self.index,
-            'timestamp': self.timestamp,
-            'data': self.data,
-            'previous_hash': self.previous_hash,
-            'hash': self.hash,
-            'nonce': self.nonce
-        }
+        return {**dataclasses.asdict(self), 'hash': self.hash}
 
     def _validate_lineage(self, current_block):
-        """
-        验证区块传承性
-        """
+        """ 验证区块传承性 """
         if self.previous_hash != current_block.hash:
             raise Exception('前序哈希值不匹配')  # TODO: 定制异常类
 
@@ -79,20 +55,14 @@ class Block:
         return True
 
     def validate_difficulty(self):
-        """
-        验证区块符合难度
-        """
+        """ 验证区块符合难度 """
         valid_padding = '0' * self.difficulty
         if not self.hash.startswith(valid_padding):
-            raise Exception('难度不符，当前难度：%s，实际哈希前缀：%s' % (
-                self.difficulty, self.hash[:self.difficulty]
-            ))
+            raise Exception(f'难度不符，当前难度：{self.difficulty}，实际哈希前缀：{self.hash[:self.difficulty]}')
         return True
 
     def is_valid(self, current_block):
-        """
-        验证区块是否合格
-        """
+        """ 验证区块是否合格 """
         return self._validate_lineage(current_block) and self.validate_difficulty()
 
 
@@ -100,7 +70,7 @@ def create_genesis_block():
     """
     创建创始区块
     """
-    now = int(datetime.now().timestamp())
+    now = int(time.time())
     return Block(0, now, 'Skr! 我是创始区块!', '0', 0)
 
 
@@ -122,9 +92,8 @@ def new_block(last_block, data):
     生成新区块，需要上一个区块的哈希值来连接铁链
     """
     index = last_block.index + 1
-    timestamp = datetime.now()
+    timestamp = int(time.time())
     previous_hash = last_block.hash
-
     return Block(index, timestamp, data, previous_hash)
 
 
@@ -139,7 +108,7 @@ def run():
         logging.info('新区块<#%3d, h=%s>加入铁链：%s', current_block.index, current_block.hash, current_block.data)
 
         # 生成新区块
-        data = '你好，我是区块<#%d>' % (current_block.index + 1)
+        data = f'你好，我是区块<#{current_block.index + 1:d}>'
         pending_block = new_block(current_block, data)
 
         # 矿工挖矿🚧
@@ -160,7 +129,7 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
     # 铁链甩起来！
-    logging.info('区块链？就是...铁链嘛！\n\n')
+    logging.info('区块链？就是...铁链嘛！\n')
 
     try:
         run()
