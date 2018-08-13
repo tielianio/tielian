@@ -7,6 +7,7 @@ class Transaction:
     sender: str
     to: str
     value: str
+    # TODO 考虑 tx 加入 timestamp
 
 
 def create_transaction_from_json(payload):
@@ -17,15 +18,3 @@ def create_transaction_from_json(payload):
         return Transaction(**payload)
     else:
         raise Exception('错误的负载类型')
-
-
-def trim_pending_txs(pending_txs, block):
-    """
-    将已经打包的交易从待打包交易去掉
-
-    现在的时间复杂度是 O(n^2)，因为要同时遍历 pending_txs 和 block 中的交易
-    """
-    # TODO 考虑 tx 加入 timestamp
-    block_txs = block.txs
-
-    return list(filter(lambda tx: tx in block_txs, pending_txs))

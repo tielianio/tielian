@@ -61,9 +61,9 @@ class Block:
             raise Exception(f'难度不符，当前难度：{self.difficulty}，实际哈希前缀：{self.hash[:self.difficulty]}')
         return True
 
-    def is_valid(self, current_block):
+    def is_valid(self, previous_block: 'Block'):
         """ 验证区块是否合格 """
-        return self._validate_lineage(current_block) and self.validate_difficulty()
+        return self._validate_lineage(previous_block) and self.validate_difficulty()
 
 
 def create_genesis_block():
