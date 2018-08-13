@@ -4,7 +4,7 @@ import logging
 import sys
 import time
 
-from tielian.transaction import create_transaction_from_json
+from tielian.transaction import Transaction
 
 
 @dataclasses.dataclass
@@ -15,8 +15,8 @@ class Block:
     index: int
     # 时间戳
     timestamp: int
-    # 任意数据
-    data: str
+    # 任意字典数据
+    data: dict
     # 前一个区块的哈希值
     previous_hash: str
     # 神秘数字
@@ -39,7 +39,7 @@ class Block:
 
     @property
     def txs(self):
-        return map(lambda p: create_transaction_from_json(p), self.data['txs'])
+        return [Transaction(**payload) for payload in self.data.get('txs', [])]
 
     def to_json(self):
         return {**dataclasses.asdict(self), 'hash': self.hash}
@@ -71,7 +71,7 @@ def create_genesis_block():
     创建创始区块
     """
     now = int(time.time())
-    return Block(0, now, 'Skr! 我是创始区块!', '0', 0)
+    return Block(0, now, {'message': 'Skr! 我是创始区块!'}, '0', 0)
 
 
 def load_block(payload):

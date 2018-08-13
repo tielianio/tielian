@@ -1,10 +1,11 @@
+import dataclasses
 import logging
-from datetime import datetime
+import time
 
 import requests
 
 from tielian.block import Block, load_block
-from tielian.transaction import create_transaction_from_json, dump_transactions
+from tielian.transaction import create_transaction_from_json
 
 
 class MiningJob:
@@ -17,12 +18,12 @@ class MiningJob:
         self.pending_txs = pending_txs
 
         data = {
-            "txs": dump_transactions(self.pending_txs)
+            'txs': [dataclasses.asdict(_) for _ in self.pending_txs],
         }
 
         self.block = Block(
             self.previous_block.index + 1,
-            datetime.now().timestamp,
+            int(time.time()),
             data,
             self.previous_block.hash,
             0
