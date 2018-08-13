@@ -1,12 +1,13 @@
 import hashlib
-from datetime import datetime
 import logging
-import time
 import sys
-from transaction import create_transaction_from_json
+import time
+from datetime import datetime
+
+from tielian.transaction import create_transaction_from_json
+
 
 class Block:
-
     # 难度 - 用区块哈希开头“0”的数量来标记
     # 例如，默认难度为2，那么合法哈希的开头就应该有两个0
     difficulty = 2
@@ -35,8 +36,8 @@ class Block:
         根据区块数据，生成唯一的区块哈希。哈希算法是最最简单的sha256。
         """
         sha = hashlib.sha256()
-        sig = "%s|%s|%s|%s|%s" % (
-            self.index, self.timestamp, self.data, 
+        sig = '%s|%s|%s|%s|%s' % (
+            self.index, self.timestamp, self.data,
             self.previous_hash, self.nonce
         )
 
@@ -57,12 +58,12 @@ class Block:
 
     def to_json(self):
         return {
-            "index": self.index,
-            "timestamp": self.timestamp,
-            "data": self.data,
-            "previous_hash": self.previous_hash,
-            "hash": self.hash,
-            "nonce": self.nonce
+            'index': self.index,
+            'timestamp': self.timestamp,
+            'data': self.data,
+            'previous_hash': self.previous_hash,
+            'hash': self.hash,
+            'nonce': self.nonce
         }
 
     def _validate_lineage(self, current_block):
@@ -70,13 +71,12 @@ class Block:
         验证区块传承性
         """
         if self.previous_hash != current_block.hash:
-            raise Exception('前序哈希值不匹配') # TODO: 定制异常类
+            raise Exception('前序哈希值不匹配')  # TODO: 定制异常类
 
         if self.index != current_block.index + 1:
             raise Exception('区块高度不匹配')
 
         return True
-
 
     def validate_difficulty(self):
         """
@@ -95,12 +95,14 @@ class Block:
         """
         return self._validate_lineage(current_block) and self.validate_difficulty()
 
+
 def create_genesis_block():
     """
     创建创始区块
     """
     now = int(datetime.now().timestamp())
-    return Block(0, now, "Skr! 我是创始区块!", "0", 0)
+    return Block(0, now, 'Skr! 我是创始区块!', '0', 0)
+
 
 def load_block(payload):
     """
@@ -113,8 +115,6 @@ def load_block(payload):
         payload['previous_hash'],
         payload['nonce']
     )
-    
-
 
 
 def new_block(last_block, data):
@@ -136,10 +136,10 @@ def run():
 
     while True:
         # 广播当前区块
-        logging.info("新区块<#%3d, h=%s>加入铁链：%s", current_block.index, current_block.hash, current_block.data)
+        logging.info('新区块<#%3d, h=%s>加入铁链：%s', current_block.index, current_block.hash, current_block.data)
 
         # 生成新区块
-        data = "你好，我是区块<#%d>" % (current_block.index + 1)
+        data = '你好，我是区块<#%d>' % (current_block.index + 1)
         pending_block = new_block(current_block, data)
 
         # 矿工挖矿🚧
@@ -154,15 +154,16 @@ def run():
 
         # [周而复始...↑]
 
+
 if __name__ == '__main__':
     # 配置日志，打到控制台上
     logging.basicConfig(level=logging.INFO)
 
     # 铁链甩起来！
-    logging.info("区块链？就是...铁链嘛！\n\n")
+    logging.info('区块链？就是...铁链嘛！\n\n')
 
     try:
         run()
     except KeyboardInterrupt:
-        logging.info("铁链断裂[-END-]")
+        logging.info('铁链断裂[-END-]')
         sys.exit(0)

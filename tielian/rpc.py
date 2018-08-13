@@ -1,22 +1,23 @@
-from flask import Flask, request, jsonify
-from transaction import create_transaction_from_json, trim_pending_txs
-from block import create_genesis_block, load_block
-
 import logging
 
+from flask import Flask, jsonify, request
 
-app = Flask("TIELIE_RPC_v1")
+from tielian.block import create_genesis_block, load_block
+from tielian.transaction import create_transaction_from_json, trim_pending_txs
+
+app = Flask('TIELIE_RPC_v1')
 
 # 待定交易列表，新提交的交易会被加入到该列表内
 pending_txs = []
 
 chain = [create_genesis_block()]
 
+
 @app.route('/txs', methods=['POST'])
 def submit_tx():
     """
     提交交易
-    
+
     交易将被加入到待打包交易
     """
     payload = request.get_json()
@@ -28,9 +29,10 @@ def submit_tx():
     logging.info('收到新交易：%s，当前待定交易数量：%d', tx, len(pending_txs))
 
     return jsonify(
-        result=tx.to_json(), 
-        msg="铁链本节点成功收到交易",
+        result=tx.to_json(),
+        msg='铁链本节点成功收到交易',
     ), 201
+
 
 @app.route('/txs', methods=['GET'])
 def get_pending_txs():
@@ -55,9 +57,10 @@ def submit_block():
 
     # 把已经打包的交易从待打包交易去掉
     pending_txs = trim_pending_txs(pending_txs, block)
-        
+
     chain.append(block)
     return "", 201
+
 
 @app.route('/blocks', methods=['GET'])
 def get_all_blocks():
@@ -67,14 +70,15 @@ def get_all_blocks():
     blocks = list(map(lambda x: x.to_json(), chain))
     return jsonify(blocks=blocks)
 
+
 @app.route('/blocks/latest', methods=['GET'])
 def get_latest_block():
     return jsonify(block=chain[-1].to_json())
 
+
 @app.errorhandler(Exception)
 def error_handler(e):
     return jsonify(msg=str(e)), 500
-
 
 
 if __name__ == '__main__':

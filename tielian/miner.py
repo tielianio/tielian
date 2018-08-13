@@ -1,8 +1,11 @@
-from block import Block, load_block
-from transaction import create_transaction_from_json, dump_transactions
 import logging
-import requests
 from datetime import datetime
+
+import requests
+
+from tielian.block import Block, load_block
+from tielian.transaction import create_transaction_from_json, dump_transactions
+
 
 class MiningJob:
     """
@@ -52,6 +55,7 @@ class MiningJob:
             self.block.update()
 
         return self.block
+
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
