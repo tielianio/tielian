@@ -1,0 +1,7 @@
+.idea/
+.venv/
+.vscode/
+
+*.DS_Store
+*.log*
+*.pyc
