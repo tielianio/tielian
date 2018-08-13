@@ -74,19 +74,6 @@ def create_genesis_block():
     return Block(0, now, {'message': 'Skr! 我是创始区块!'}, '0', 0)
 
 
-def load_block(payload):
-    """
-    将 JSON 格式的新区块变成 Block 类型
-    """
-    return Block(
-        payload['index'],
-        payload['timestamp'],
-        payload['data'],
-        payload['previous_hash'],
-        payload['nonce']
-    )
-
-
 def new_block(last_block, data):
     """
     生成新区块，需要上一个区块的哈希值来连接铁链
